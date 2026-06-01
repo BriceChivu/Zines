@@ -14,9 +14,10 @@
   MANAGING ZINES
   --------------
   - To ADD a zine: insert a row in the `zines` table via the
-    Supabase dashboard. Set `id` (e.g. "Korea1", "Korea2")
-    and `title` (e.g. "Korea"). Both copies of the same zine
-    share the same title but have different IDs.
+    Supabase dashboard. Set `id` (e.g. "Korea1", "Korea2"),
+    `title` (e.g. "Korea"), and `code` (e.g. "XK7Q" — print
+    this inside the physical zine). Both copies of the same
+    zine share the same title but have different IDs and codes.
   - To REMOVE a zine: delete its row from `zines`. All its
     comments will be deleted automatically (CASCADE).
 
@@ -138,6 +139,9 @@
         "<label for='location'>Where are you? (optional):</label><br>" +
         "<input type='text' id='location' name='location' maxlength='120' placeholder='e.g. Taipei, Fake Sober Café'><br><br>" +
 
+        "<label for='code'>Secret code printed inside the zine (required):</label><br>" +
+        "<input type='text' id='code' name='code' maxlength='20' required autocomplete='off' placeholder='e.g. XK7Q'><br><br>" +
+
         "<label for='body'>Message (required, max 500 chars):</label><br>" +
         "<textarea id='body' name='body' rows='4' cols='40' maxlength='500' required></textarea><br>" +
         "<small id='char-count'>0 / 500</small><br><br>" +
@@ -249,9 +253,14 @@
     }
 
     const body = document.getElementById("body").value.trim();
+    const code = document.getElementById("code").value.trim();
     const author = document.getElementById("author").value.trim();
     const location = document.getElementById("location").value.trim();
 
+    if (!code) {
+      errorEl.textContent = "Please enter the secret code printed inside the zine.";
+      return;
+    }
     if (!body) {
       errorEl.textContent = "Message cannot be empty.";
       return;
@@ -276,7 +285,8 @@
           zine_id: zineId,
           author: author || null,
           location: location || null,
-          body: body
+          body: body,
+          code: code
         })
       });
 
@@ -286,7 +296,7 @@
       window.location.href = window.location.pathname;
 
     } catch (err) {
-      errorEl.textContent = "Error submitting comment. Please try again.";
+      errorEl.textContent = "Wrong code or submission error. Please check the secret code printed inside the zine and try again.";
       submitBtn.disabled = false;
       submitBtn.textContent = "Submit";
       console.error(err);
