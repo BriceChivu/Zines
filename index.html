@@ -51,8 +51,8 @@
 </head>
 <body>
 
-<h1>Zine Guestbook</h1>
-<p>These zines are left in cafés and public spaces around the world. If you found one, leave a note.</p>
+<h1>Zine Guestbook / 小誌留言板</h1>
+<p>These zines are left in cafés and public spaces around the world. If you found one, leave a note.<br>這些小誌被放置在世界各地的咖啡廳與公共空間。如果你找到了一本，留下你的足跡吧。</p>
 <hr>
 
 <div id="status"></div>
@@ -96,12 +96,14 @@
   }
 
   function formatDate(isoString) {
-    const d = new Date(isoString);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return y + "/" + m + "/" + day;
-  }
+      const d = new Date(isoString);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const h = String(d.getHours()).padStart(2, "0");
+      const min = String(d.getMinutes()).padStart(2, "0");
+      return y + "/" + m + "/" + day + " " + h + ":" + min;
+    }
 
   function getZineParam() {
     const params = new URLSearchParams(window.location.search);
@@ -133,20 +135,20 @@
         // Honeypot — hidden from real users, bots will fill it
         "<input type='text' id='honeypot' name='website' style='display:none' tabindex='-1' autocomplete='off'>" +
 
-        "<label for='author'>Your name (optional):</label><br>" +
+        "<label for='author'>Your name (optional) / 你的名字（可選）:</label><br>" +
         "<input type='text' id='author' name='author' maxlength='80' autocomplete='off'><br><br>" +
 
-        "<label for='location'>Where are you? (optional):</label><br>" +
+        "<label for='location'>Where are you? (optional) / 你在哪裡？（可選）:</label><br>" +
         "<input type='text' id='location' name='location' maxlength='120' placeholder='e.g. Taipei, Fake Sober Café'><br><br>" +
 
-        "<label for='code'>Secret code printed inside the zine (required):</label><br>" +
+        "<label for='code'>Secret code printed inside the zine (required) / 小誌內頁的密碼（必填）:</label><br>" +
         "<input type='text' id='code' name='code' maxlength='20' required autocomplete='off' placeholder='e.g. XK7Q'><br><br>" +
 
-        "<label for='body'>Message (required, max 500 chars):</label><br>" +
+        "<label for='body'>Message (required, max 500 chars) / 留言（必填，最多500字）:</label><br>" +
         "<textarea id='body' name='body' rows='4' cols='40' maxlength='500' required></textarea><br>" +
         "<small id='char-count'>0 / 500</small><br><br>" +
 
-        "<button type='submit'>Submit</button>" +
+        "<button type='submit'>Submit / 送出</button>" +
       "</form>" +
       "<div id='form-error'></div>";
 
@@ -216,10 +218,10 @@
           const c = item.comment;
           html += "<p>";
           html += "<strong>" + escapeHtml(title) + " zine #" + item.copyNumber + "</strong><br>";
-          if (c.author) html += "from " + escapeHtml(c.author) + "<br>";
-          if (c.location) html += "location: " + escapeHtml(c.location) + "<br>";
+          html += "from / 來自: " + escapeHtml(c.author || "unknown / 不知名") + "<br>";
+          if (c.location) html += "location / 地點: " + escapeHtml(c.location) + "<br>";
           html += formatDate(c.created_at) + "<br>";
-          html += escapeHtml(c.body);
+          html += escapeHtml(c.body);          
           html += "</p><hr>";
         });
       }
@@ -348,7 +350,7 @@
         const found = zines.find(function(z) { return z.id === zineParam; });
         if (found) {
           renderCommentForm(zineParam);
-          statusEl.innerHTML = "<p>You scanned: <strong>" + escapeHtml(zineParam) + "</strong></p>";
+          statusEl.innerHTML = "<p>You scanned / 你掃描了: <strong>" + escapeHtml(zineParam) + "</strong></p>";
           document.getElementById("zines-container").textContent = "";
           document.getElementById("comment-form-container").scrollIntoView({ behavior: "smooth" });
         } else {
@@ -358,7 +360,7 @@
       } else {
         renderZines(zines, comments);
       }
-      
+
     } catch (err) {
       statusEl.textContent = "Failed to load. Please try refreshing.";
       document.getElementById("zines-container").textContent = "";
