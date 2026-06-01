@@ -270,7 +270,7 @@
         method: "POST",
         headers: {
           ...supabaseHeaders(),
-          "Prefer": "return=minimal"
+          "Prefer": "return=representation"
         },
         body: JSON.stringify({
           zine_id: zineId,
