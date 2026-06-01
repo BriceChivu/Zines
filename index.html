@@ -1,0 +1,356 @@
+<!--
+=============================================================
+  ZINE GUESTBOOK — index.html
+  Hosted on GitHub Pages | Backend: Supabase
+=============================================================
+
+  SETUP
+  -----
+  1. Find the two lines marked PASTE_YOUR_SUPABASE_URL and
+     PASTE_YOUR_SUPABASE_ANON_KEY below and replace the
+     placeholder strings with your actual values from:
+     Supabase dashboard → Project Settings → API
+
+  MANAGING ZINES
+  --------------
+  - To ADD a zine: insert a row in the `zines` table via the
+    Supabase dashboard. Set `id` (e.g. "Korea1", "Korea2")
+    and `title` (e.g. "Korea"). Both copies of the same zine
+    share the same title but have different IDs.
+  - To REMOVE a zine: delete its row from `zines`. All its
+    comments will be deleted automatically (CASCADE).
+
+  MANAGING COMMENTS
+  -----------------
+  - To DELETE a comment: find it in the `comments` table in
+    the Supabase dashboard and delete its row.
+
+  QR CODES
+  --------
+  - Each QR code should point to:
+    https://YOUR_SITE/?zine=Korea1
+    https://YOUR_SITE/?zine=Korea2  etc.
+  - The zine ID in the URL must exactly match the `id` field
+    in the `zines` table (case-sensitive).
+
+  RATE LIMITING
+  -------------
+  - A client-side 60-second cooldown per browser session is
+    enforced. Server-side rate limiting can be added in
+    Supabase via a Postgres function if needed later.
+
+=============================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zine Guestbook</title>
+</head>
+<body>
+
+<h1>Zine Guestbook</h1>
+<p>These zines are left in cafés and public spaces around the world. If you found one, leave a note.</p>
+<hr>
+
+<div id="status"></div>
+<div id="comment-form-container"></div>
+<hr>
+<div id="zines-container">Loading...</div>
+
+<script>
+  // =============================================================
+  //  CONFIG — paste your Supabase credentials here
+  // =============================================================
+  const SUPABASE_URL  = "https://bvppzhogumelrtdujxjp.supabase.co/rest/v1/";   // e.g. https://xxxx.supabase.co 
+  const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2cHB6aG9ndW1lbHJ0ZHVqeGpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMTAzODIsImV4cCI6MjA5NTg4NjM4Mn0.BbmLgqDwwA1K7GSMAlLz2B4uT5s-OireLs_7i0m98RU";
+  const MAX_COMMENT_LENGTH = 500;
+  const RATE_LIMIT_MS = 60 * 1000; // 60 seconds between submissions
+
+  // =============================================================
+  //  HELPERS
+  // =============================================================
+
+  function supabaseHeaders() {
+    return {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_KEY,
+      "Authorization": "Bearer " + SUPABASE_KEY
+    };
+  }
+
+  async function supabaseFetch(path, options) {
+    const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
+      headers: supabaseHeaders(),
+      ...options
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(err);
+    }
+    // 204 No Content (e.g. after INSERT with Prefer: return=minimal)
+    if (res.status === 204) return null;
+    return res.json();
+  }
+
+  function formatDate(isoString) {
+    const d = new Date(isoString);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return y + "/" + m + "/" + day;
+  }
+
+  function getZineParam() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("zine");
+  }
+
+  // =============================================================
+  //  FETCH DATA
+  // =============================================================
+
+  async function fetchZines() {
+    return supabaseFetch("zines?select=*&order=created_at.asc");
+  }
+
+  async function fetchComments() {
+    return supabaseFetch("comments?select=*&order=created_at.desc");
+  }
+
+  // =============================================================
+  //  RENDER
+  // =============================================================
+
+  function renderCommentForm(zineId) {
+    const container = document.getElementById("comment-form-container");
+
+    container.innerHTML =
+      "<h2>Leave a comment on: " + zineId + "</h2>" +
+      "<form id='comment-form'>" +
+        // Honeypot — hidden from real users, bots will fill it
+        "<input type='text' id='honeypot' name='website' style='display:none' tabindex='-1' autocomplete='off'>" +
+
+        "<label for='author'>Your name (optional):</label><br>" +
+        "<input type='text' id='author' name='author' maxlength='80' autocomplete='off'><br><br>" +
+
+        "<label for='location'>Where are you? (optional):</label><br>" +
+        "<input type='text' id='location' name='location' maxlength='120' placeholder='e.g. Taipei, Fake Sober Café'><br><br>" +
+
+        "<label for='body'>Message (required, max 500 chars):</label><br>" +
+        "<textarea id='body' name='body' rows='4' cols='40' maxlength='500' required></textarea><br>" +
+        "<small id='char-count'>0 / 500</small><br><br>" +
+
+        "<button type='submit'>Submit</button>" +
+      "</form>" +
+      "<div id='form-error'></div>";
+
+    // Character counter
+    document.getElementById("body").addEventListener("input", function() {
+      document.getElementById("char-count").textContent = this.value.length + " / 500";
+    });
+
+    document.getElementById("comment-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+      handleSubmit(zineId);
+    });
+  }
+
+  function renderZines(zines, comments) {
+    const container = document.getElementById("zines-container");
+
+    if (!zines || zines.length === 0) {
+      container.innerHTML = "<p>No zines found yet.</p>";
+      return;
+    }
+
+    // Group comments by zine_id
+    const commentsByZine = {};
+    comments.forEach(function(c) {
+      if (!commentsByZine[c.zine_id]) commentsByZine[c.zine_id] = [];
+      commentsByZine[c.zine_id].push(c);
+    });
+
+    // Group zines by title
+    const zinesByTitle = {};
+    const titleOrder = [];
+    zines.forEach(function(z) {
+      if (!zinesByTitle[z.title]) {
+        zinesByTitle[z.title] = [];
+        titleOrder.push(z.title);
+      }
+      zinesByTitle[z.title].push(z);
+    });
+
+    let html = "";
+
+    titleOrder.forEach(function(title) {
+      html += "<h2>" + escapeHtml(title) + "</h2>";
+
+      const zineGroup = zinesByTitle[title];
+
+      // Collect all comments for this title group, tagged with copy number
+      let allComments = [];
+      zineGroup.forEach(function(z) {
+        const copyNumber = extractCopyNumber(z.id);
+        const zineComments = commentsByZine[z.id] || [];
+        zineComments.forEach(function(c) {
+          allComments.push({ comment: c, copyNumber: copyNumber, zineId: z.id });
+        });
+      });
+
+      // Sort by date descending
+      allComments.sort(function(a, b) {
+        return new Date(b.comment.created_at) - new Date(a.comment.created_at);
+      });
+
+      if (allComments.length === 0) {
+        html += "<p><em>No comments yet for this zine.</em></p>";
+      } else {
+        allComments.forEach(function(item) {
+          const c = item.comment;
+          html += "<p>";
+          html += "<strong>" + escapeHtml(title) + " zine #" + item.copyNumber + "</strong><br>";
+          if (c.author) html += "from " + escapeHtml(c.author) + "<br>";
+          if (c.location) html += "location: " + escapeHtml(c.location) + "<br>";
+          html += formatDate(c.created_at) + "<br>";
+          html += escapeHtml(c.body);
+          html += "</p><hr>";
+        });
+      }
+
+      html += "<hr>";
+    });
+
+    container.innerHTML = html;
+  }
+
+  // =============================================================
+  //  SUBMIT
+  // =============================================================
+
+  async function handleSubmit(zineId) {
+    const errorEl = document.getElementById("form-error");
+    errorEl.textContent = "";
+
+    // Honeypot check
+    if (document.getElementById("honeypot").value !== "") {
+      return; // Silent fail for bots
+    }
+
+    // Rate limit check
+    const lastSubmit = parseInt(sessionStorage.getItem("last_submit") || "0", 10);
+    const now = Date.now();
+    if (now - lastSubmit < RATE_LIMIT_MS) {
+      const wait = Math.ceil((RATE_LIMIT_MS - (now - lastSubmit)) / 1000);
+      errorEl.textContent = "Please wait " + wait + " more seconds before submitting again.";
+      return;
+    }
+
+    const body = document.getElementById("body").value.trim();
+    const author = document.getElementById("author").value.trim();
+    const location = document.getElementById("location").value.trim();
+
+    if (!body) {
+      errorEl.textContent = "Message cannot be empty.";
+      return;
+    }
+    if (body.length > MAX_COMMENT_LENGTH) {
+      errorEl.textContent = "Message is too long.";
+      return;
+    }
+
+    const submitBtn = document.querySelector("#comment-form button[type='submit']");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting...";
+
+    try {
+      await supabaseFetch("comments", {
+        method: "POST",
+        headers: {
+          ...supabaseHeaders(),
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({
+          zine_id: zineId,
+          author: author || null,
+          location: location || null,
+          body: body
+        })
+      });
+
+      sessionStorage.setItem("last_submit", String(Date.now()));
+
+      // Redirect to homepage
+      window.location.href = window.location.pathname;
+
+    } catch (err) {
+      errorEl.textContent = "Error submitting comment. Please try again.";
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit";
+      console.error(err);
+    }
+  }
+
+  // =============================================================
+  //  UTILS
+  // =============================================================
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function extractCopyNumber(zineId) {
+    // Extracts trailing number from e.g. "Korea3" → "3"
+    const match = zineId.match(/(\d+)$/);
+    return match ? match[1] : zineId;
+  }
+
+  // =============================================================
+  //  INIT
+  // =============================================================
+
+  async function init() {
+    const statusEl = document.getElementById("status");
+    const zineParam = getZineParam();
+
+    try {
+      const [zines, comments] = await Promise.all([fetchZines(), fetchComments()]);
+
+      if (zineParam) {
+        // Check this zine ID actually exists
+        const found = zines.find(function(z) { return z.id === zineParam; });
+        if (found) {
+          renderCommentForm(zineParam);
+          statusEl.innerHTML = "<p>You scanned: <strong>" + escapeHtml(zineParam) + "</strong></p>";
+        } else {
+          statusEl.innerHTML = "<p>Unknown zine ID: <strong>" + escapeHtml(zineParam) + "</strong>. Showing all comments below.</p>";
+        }
+      }
+
+      renderZines(zines, comments);
+
+      // Scroll to the relevant zine section if coming from a QR code
+      if (zineParam) {
+        document.getElementById("comment-form-container").scrollIntoView({ behavior: "smooth" });
+      }
+
+    } catch (err) {
+      statusEl.textContent = "Failed to load. Please try refreshing.";
+      document.getElementById("zines-container").textContent = "";
+      console.error(err);
+    }
+  }
+
+  init();
+</script>
+
+</body>
+</html>
