@@ -345,23 +345,20 @@
       const [zines, comments] = await Promise.all([fetchZines(), fetchComments()]);
 
       if (zineParam) {
-        // Check this zine ID actually exists
         const found = zines.find(function(z) { return z.id === zineParam; });
         if (found) {
           renderCommentForm(zineParam);
           statusEl.innerHTML = "<p>You scanned: <strong>" + escapeHtml(zineParam) + "</strong></p>";
+          document.getElementById("zines-container").textContent = "";
+          document.getElementById("comment-form-container").scrollIntoView({ behavior: "smooth" });
         } else {
           statusEl.innerHTML = "<p>Unknown zine ID: <strong>" + escapeHtml(zineParam) + "</strong>. Showing all comments below.</p>";
+          renderZines(zines, comments);
         }
+      } else {
+        renderZines(zines, comments);
       }
-
-      renderZines(zines, comments);
-
-      // Scroll to the relevant zine section if coming from a QR code
-      if (zineParam) {
-        document.getElementById("comment-form-container").scrollIntoView({ behavior: "smooth" });
-      }
-
+      
     } catch (err) {
       statusEl.textContent = "Failed to load. Please try refreshing.";
       document.getElementById("zines-container").textContent = "";
