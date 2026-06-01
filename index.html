@@ -51,7 +51,7 @@
 </head>
 <body>
 
-<h1>Zine Guestbook / 小誌留言板</h1>
+<h1>Zine Guestbook<br>小誌留言板</h1>
 <p>These zines are left in cafés and public spaces around the world. If you found one, leave a note.<br>這些小誌被放置在世界各地的咖啡廳與公共空間。如果你找到了一本，留下你的足跡吧。</p>
 <hr>
 
@@ -212,7 +212,7 @@
       });
 
       if (allComments.length === 0) {
-        html += "<p><em>No comments yet for this zine.</em></p>";
+        html += "<p><em>No comments yet for this zine.<br>這本小誌目前還沒有任何評論。</em></p>";
       } else {
         allComments.forEach(function(item) {
           const c = item.comment;
