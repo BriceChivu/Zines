@@ -52,7 +52,7 @@
 <body>
 
 <h1>Zine Guestbook<br>小誌留言板</h1>
-<p>These zines are left in cafés and public spaces around the world. If you found one, leave a note.<br>這些小誌被放置在世界各地的咖啡廳與公共空間。如果你找到了一本，留下你的足跡吧。</p>
+<p>These zines are left in cafés and public spaces around the world. If you found one, leave a note.<br>這些小誌被放置在世界各地的咖啡廳與公共空間。如果你找到了一本，留下你的足跡吧～</p>
 <hr>
 
 <div id="status"></div>
@@ -288,16 +288,16 @@
       });
 
       if (result === "wrong_code") {
-        errorEl.textContent = "Wrong code. Please check the secret code printed at the back of the zine.<br>錯誤的代碼。請檢查印在小誌背面的密碼。";
+        errorEl.textContent = "Wrong code. Please check the secret code printed at the back of the zine. / 錯誤的代碼。請檢查印在小誌背面的密碼。";
         submitBtn.disabled = false;
-        submitBtn.textContent = "Submit";
+        submitBtn.textContent = "Submit / 送出";
         return;
       }
 
       if (result === "invalid_zine") {
-        errorEl.textContent = "Unknown zine. Please try again.<br>未知的小誌。請再試一次。";
+        errorEl.textContent = "Unknown zine. Please try again. / 未知的小誌。請再試一次。";
         submitBtn.disabled = false;
-        submitBtn.textContent = "Submit";
+        submitBtn.textContent = "Submit / 送出";
         return;
       }
 
@@ -307,9 +307,9 @@
       window.location.href = window.location.pathname;
 
     } catch (err) {
-      errorEl.textContent = "Submission error. Please try again.<br>提交錯誤。請再試一次。";
+      errorEl.textContent = "Submission error. Please try again. / 提交錯誤。請再試一次。";
       submitBtn.disabled = false;
-      submitBtn.textContent = "Submit";
+      submitBtn.textContent = "Submit / 送出";
       console.error(err);
     }
   }
@@ -350,7 +350,7 @@
         if (found) {
           renderCommentForm(zineParam, found.title);
           const zineDisplay = "<em>" + escapeHtml(found.title) + " #" + extractCopyNumber(zineParam) + "</em>";
-          statusEl.innerHTML = "<h2>You scanned " + zineDisplay + ", leave a comment.</h2><p>你掃描了 " + "<strong>" + zineDisplay + "</strong>，留言。</p>";  
+          statusEl.innerHTML = "<h2>You scanned " + zineDisplay + ", leave a comment♥️</h2><p>你掃描了 " + "<strong>" + zineDisplay + "</strong>，留言吧～</p>";  
           document.getElementById("zines-container").textContent = "";
           document.getElementById("comment-form-container").scrollIntoView({ behavior: "smooth" });
         } else {
