@@ -349,7 +349,8 @@
         const found = zines.find(function(z) { return z.id === zineParam; });
         if (found) {
           renderCommentForm(zineParam, found.title);
-          statusEl.innerHTML = "<h2>You scanned " + escapeHtml(found.title) + " #" + extractCopyNumber(zineParam) + ", leave a comment.<br>你掃描了 " + escapeHtml(found.title) + " #" + extractCopyNumber(zineParam) + "，留言。</h2>";          
+          const zineDisplay = "<em>" + escapeHtml(found.title) + " #" + extractCopyNumber(zineParam) + "</em>";
+          statusEl.innerHTML = "<h2>You scanned " + zineDisplay + ", leave a comment.</h2><p>你掃描了 " + "<strong>" + zineDisplay + "</strong>，留言。</p>";  
           document.getElementById("zines-container").textContent = "";
           document.getElementById("comment-form-container").scrollIntoView({ behavior: "smooth" });
         } else {
