@@ -137,7 +137,7 @@
         "<label for='author'>Your name (optional):<br>你的名字（可選）:</label><br>" +
         "<input type='text' id='author' name='author' maxlength='80' autocomplete='off'><br><br>" +
 
-        "<label for='location'>Where are you? (optional):<br>你在哪裡？（可選）:</label><br>" +
+        "<label for='location'>Where are you right now? (optional):<br>你現在在哪裡？（可選）:</label><br>" +
         "<input type='text' id='location' name='location' maxlength='120' placeholder='e.g. Taipei, Fake Sober Café'><br><br>" +
 
         "<label for='code'>Secret code printed at the back of the zine (required):<br>小誌背面的密碼（必填）:</label><br>" +
@@ -166,7 +166,7 @@
     const container = document.getElementById("zines-container");
 
     if (!zines || zines.length === 0) {
-      container.innerHTML = "<p>No zines found yet.</p>";
+      container.innerHTML = "<p>No zines found yet.<br>目前還沒有找到任何小誌。</p>";
       return;
     }
 
@@ -259,15 +259,15 @@
     const location = document.getElementById("location").value.trim();
 
     if (!code) {
-      errorEl.textContent = "Please enter the secret code printed inside the zine.";
+      errorEl.textContent = "Please enter the secret code printed at the back of the zine.<br>請輸入印在小誌背面的密碼。";
       return;
     }
     if (!body) {
-      errorEl.textContent = "Message cannot be empty.";
+      errorEl.textContent = "Message cannot be empty.<br>留言不能為空。";
       return;
     }
     if (body.length > MAX_COMMENT_LENGTH) {
-      errorEl.textContent = "Message is too long.";
+      errorEl.textContent = "Message is too long.<br>留言太長了。";
       return;
     }
 
@@ -288,14 +288,14 @@
       });
 
       if (result === "wrong_code") {
-        errorEl.textContent = "Wrong code. Please check the secret code printed inside the zine.";
+        errorEl.textContent = "Wrong code. Please check the secret code printed at the back of the zine.<br>錯誤的代碼。請檢查印在小誌背面的密碼。";
         submitBtn.disabled = false;
         submitBtn.textContent = "Submit";
         return;
       }
 
       if (result === "invalid_zine") {
-        errorEl.textContent = "Unknown zine. Please try again.";
+        errorEl.textContent = "Unknown zine. Please try again.<br>未知的小誌。請再試一次。";
         submitBtn.disabled = false;
         submitBtn.textContent = "Submit";
         return;
@@ -307,7 +307,7 @@
       window.location.href = window.location.pathname;
 
     } catch (err) {
-      errorEl.textContent = "Submission error. Please try again.";
+      errorEl.textContent = "Submission error. Please try again.<br>提交錯誤。請再試一次。";
       submitBtn.disabled = false;
       submitBtn.textContent = "Submit";
       console.error(err);
@@ -349,7 +349,7 @@
         const found = zines.find(function(z) { return z.id === zineParam; });
         if (found) {
           renderCommentForm(zineParam, found.title);
-          statusEl.innerHTML = "<h2>You scanned <strong>" + escapeHtml(found.title) + " #" + extractCopyNumber(zineParam) + "</strong>, leave a comment.<br>你掃描了 <strong>" + escapeHtml(found.title) + " #" + extractCopyNumber(zineParam) + "</strong>，留言。</h2>";          
+          statusEl.innerHTML = "<h2>You scanned " + escapeHtml(found.title) + " #" + extractCopyNumber(zineParam) + ", leave a comment.<br>你掃描了 " + escapeHtml(found.title) + " #" + extractCopyNumber(zineParam) + "，留言。</h2>";          
           document.getElementById("zines-container").textContent = "";
           document.getElementById("comment-form-container").scrollIntoView({ behavior: "smooth" });
         } else {
