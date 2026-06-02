@@ -126,11 +126,11 @@
   //  RENDER
   // =============================================================
 
-  function renderCommentForm(zineId) {
+  function renderCommentForm(zineId, zineTitle) {
     const container = document.getElementById("comment-form-container");
 
     container.innerHTML =
-      "<h2>Leave a comment on: " + zineId + "</h2>" +
+      "<h2>Leave a comment on / 留言給: " + escapeHtml(zineTitle) + " #" + extractCopyNumber(zineId) + "</h2>" +
       "<form id='comment-form'>" +
         // Honeypot — hidden from real users, bots will fill it
         "<input type='text' id='honeypot' name='website' style='display:none' tabindex='-1' autocomplete='off'>" +
@@ -349,8 +349,8 @@
       if (zineParam) {
         const found = zines.find(function(z) { return z.id === zineParam; });
         if (found) {
-          renderCommentForm(zineParam);
-          statusEl.innerHTML = "<p>You scanned / 你掃描了: <strong>" + escapeHtml(zineParam) + "</strong></p>";
+          renderCommentForm(zineParam, found.title);
+          statusEl.innerHTML = "<p>You scanned / 你掃描了: <strong>" + escapeHtml(found.title) + " #" + extractCopyNumber(zineParam) + "</strong></p>";          
           document.getElementById("zines-container").textContent = "";
           document.getElementById("comment-form-container").scrollIntoView({ behavior: "smooth" });
         } else {
