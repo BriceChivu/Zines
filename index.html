@@ -52,16 +52,74 @@
 <body>
 
 <h1>Zine Guestbook<br>小誌留言板</h1>
-<p>Hello there. I hope you're having a great day my friend.<br>My name is Xiao B Fan and I come from France.<br>
-I feel like sharing a glipse of my life through those zines with you. If you'd like to leave a note, that would mean the world to me. 
-Also, feel free to leave the zine you found somewhere else for someone to discover. I would love for them to travel the world!<br>
-Merci!<br>
-哈囉～ 希望你今天過得愉快！<br>我叫小B飯，來自法國。<br>
-我想透過這些小誌和你分享我的旅遊。如果你願意留言給我，我會非常感激！<br>
-另外，如果你願意的話，也可以把你找到的小誌留在別的地方讓其他人發現。我很希望它們能環遊世界！<br>
-謝謝～
-</p>
+<p id="typewriter"></p>
+<script>
+  (function() {
+    const lines = [
+          ["Hello there. I hope you're having a great day my friend.", "哈囉～ 希望你今天過得愉快！"],
+          ["My name is Xiao B Fan and I come from France.", "我叫小B飯，來自法國。"],
+          ["I feel like sharing a glimpse of my life through those zines with you. If you'd like to leave a note, that would mean the world to me. Also, feel free to leave the zine you found somewhere else for someone to discover. I would love for them to travel the world!", "我想透過這些小誌和你分享我的旅遊。如果你願意留言給我，我會非常感激！另外，如果你願意的話，也可以把你找到的小誌留在別的地方讓其他人發現。我很希望它們能環遊世界！"],
+          ["Merci!", "謝謝～"]
+        ];
+const el = document.getElementById("typewriter");
+    let lineIndex = 0;
+    let enIndex = 0;
+    let zhIndex = 0;
+    const speedEN = 30;
+    const speedZH = 80;
 
+    // completed lines
+    let enDone = [];
+    let zhDone = [];
+
+    function render() {
+      let enHtml = enDone.join("<br>") + (enDone.length ? "<br>" : "");
+      let zhHtml = zhDone.join("<br>") + (zhDone.length ? "<br>" : "");
+      if (lineIndex < lines.length) {
+        enHtml += lines[lineIndex][0].slice(0, enIndex);
+        zhHtml += lines[lineIndex][1].slice(0, zhIndex);
+      }
+      el.innerHTML = enHtml + '<span>|</span><br><br>' + zhHtml;
+    }
+
+    function typeEN() {
+      if (lineIndex >= lines.length) return;
+      if (enIndex < lines[lineIndex][0].length) {
+        enIndex++;
+        render();
+        setTimeout(typeEN, speedEN);
+      }
+    }
+
+    function typeZH() {
+      if (lineIndex >= lines.length) return;
+      if (zhIndex < lines[lineIndex][1].length) {
+        zhIndex++;
+        render();
+        setTimeout(typeZH, speedZH);
+      } else {
+        // ZH finished this line — wait for EN then advance
+        const enLen = lines[lineIndex][0].length;
+        const remaining = (enLen - enIndex) * speedEN;
+        setTimeout(function() {
+          enDone.push(lines[lineIndex][0]);
+          zhDone.push(lines[lineIndex][1]);
+          lineIndex++;
+          enIndex = 0;
+          zhIndex = 0;
+          if (lineIndex < lines.length) {
+            setTimeout(function() { typeEN(); typeZH(); }, 300);
+          } else {
+            render();
+          }
+        }, remaining + 50);
+      }
+    }
+
+    typeEN();
+    typeZH();
+      })();
+</script>
 
 <div id="status"></div>
 <div id="comment-form-container"></div>
