@@ -15,6 +15,7 @@ test('user can submit a comment with correct code', async ({ page }) => {
   await page.fill('#location', 'GitHub Actions');
   await page.fill('#code', TEST_CODE);
   await page.fill('#body', 'Automated test comment — will be deleted');
+  await page.fill('#instagram', '@ci_test');
 
   // Submit
   await page.click('button[type="submit"]');
