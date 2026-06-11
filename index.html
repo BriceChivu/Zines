@@ -437,7 +437,7 @@ const el = document.getElementById("typewriter");
             "你掃描了 " + zineDisplay + "，留言吧～<br>" +
             "這個小誌在世界上共有 " + totalCopies + " 本，你找到的是第 " + copyNumber + " 本。</p>";
           document.getElementById("zines-container").textContent = "";
-          document.getElementById("comment-form-container").scrollIntoView({ behavior: "smooth" });
+          // document.getElementById("comment-form-container").scrollIntoView({ behavior: "smooth" });
         } else {
           statusEl.innerHTML = "<p>Unknown zine ID: <strong>" + escapeHtml(zineParam) + "</strong>. Showing all comments below.</p>";
           renderZines(zines, comments);
