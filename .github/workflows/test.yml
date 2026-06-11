@@ -1,0 +1,37 @@
+name: Test user flow
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install @playwright/test
+          npx playwright install chromium --with-deps
+
+      - name: Run tests
+        env:
+          TEST_CODE: ${{ secrets.TEST_CODE }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: npx playwright test
+
+      - name: Cleanup test comment
+        if: always()
+        run: |
+          curl -s -X DELETE "${{ secrets.SUPABASE_URL }}/rest/v1/comments?author=eq.CI%20Test" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Prefer: return=minimal"
+          echo "✅ Test comment cleaned up"
