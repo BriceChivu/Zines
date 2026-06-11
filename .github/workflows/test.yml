@@ -45,8 +45,8 @@ jobs:
 
       - name: Delete test comment
         run: |
-          curl -s -X DELETE "${{ secrets.SUPABASE_URL }}/rest/v1/comments?author=eq.CI%20Test" \
-            -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}"
-          echo "✅ Test comment deleted"
+            curl -s -X DELETE "${{ secrets.SUPABASE_URL }}/rest/v1/comments?author=eq.CI%20Test" \
+                -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+                -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+                -H "Prefer: return=minimal"
+            echo "✅ Test comment deleted"
