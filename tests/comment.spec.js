@@ -4,7 +4,7 @@ const ZINE_ID = 'KoreaMoments1';
 const TEST_CODE = process.env.TEST_CODE;
 
 test('user can submit a comment with correct code', async ({ page }) => {
-  await page.goto(`/?zine=${ZINE_ID}`, { waitUntil: 'networkidle' });
+  await page.goto(`https://bricechivu.github.io/Zines/?zine=${ZINE_ID}`, { waitUntil: 'networkidle' });
 
   // Debug: capture what the page looks like
   await page.screenshot({ path: 'test-results/debug.png', fullPage: true });
@@ -31,7 +31,7 @@ test('user can submit a comment with correct code', async ({ page }) => {
 });
 
 test('wrong code shows error and does not submit', async ({ page }) => {
-  await page.goto(`/?zine=${ZINE_ID}`, { waitUntil: 'networkidle' });
+  await page.goto(`https://bricechivu.github.io/Zines/?zine=${ZINE_ID}`, { waitUntil: 'networkidle' });
 
   await page.fill('#code', 'WRONGCODE');
   await page.fill('#body', 'This should not be saved');
