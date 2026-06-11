@@ -36,6 +36,7 @@ jobs:
 
       - name: Cleanup test comment
         if: always()
+        continue-on-error: true
         run: |
           curl -s -X DELETE "${{ secrets.SUPABASE_URL }}/rest/v1/comments?author=eq.CI%20Test" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
