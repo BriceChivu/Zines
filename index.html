@@ -213,6 +213,9 @@ const el = document.getElementById("typewriter");
         "<textarea id='body' name='body' rows='4' cols='40' maxlength='500' required></textarea><br>" +
         "<small id='char-count'>0 / 500</small><br><br>" +
 
+        "<label for='instagram'>Instagram (optional) / Instagram（可選）:</label><br>" +
+        "<input type='text' id='instagram' name='instagram' maxlength='60' autocomplete='off' placeholder='@yourusername'><br><br>" +
+
         "<button type='submit'>Submit / 送出</button>" +
       "</form>" +
       "<div id='form-error'></div>";
@@ -283,7 +286,9 @@ const el = document.getElementById("typewriter");
           const c = item.comment;
           html += "<p>";
           html += "<strong>" + escapeHtml(title) + " zine #" + item.copyNumber + "</strong><br>";
-          html += "from / 來自: " + escapeHtml(c.author || "unknown / 不知名") + "<br>";
+          const authorDisplay = escapeHtml(c.author || "unknown / 不知名");
+          const igDisplay = c.instagram ? " (IG: " + escapeHtml(c.instagram) + ")" : "";
+          html += "from / 來自: " + authorDisplay + igDisplay + "<br>";
           if (c.location) html += "location / 地點: " + escapeHtml(c.location) + "<br>";
           html += formatDate(c.created_at) + "<br>";
           html += escapeHtml(c.body);          
@@ -321,6 +326,7 @@ const el = document.getElementById("typewriter");
 
     const body = document.getElementById("body").value.trim();
     const code = document.getElementById("code").value.trim();
+    const instagram = document.getElementById("instagram").value.trim();
     const author = document.getElementById("author").value.trim();
     const location = document.getElementById("location").value.trim();
 
@@ -349,7 +355,8 @@ const el = document.getElementById("typewriter");
           p_author: author || null,
           p_location: location || null,
           p_body: body,
-          p_code: code
+          p_code: code,
+          p_instagram: instagram || null
         })
       });
 
