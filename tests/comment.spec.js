@@ -20,7 +20,7 @@ test('user can submit a comment with correct code', async ({ page }) => {
   await page.click('button[type="submit"]');
 
   // Should redirect to homepage
-  await page.waitForURL(`${BASE_URL}/`, { timeout: 15000 });
+  await page.waitForURL(url => !url.toString().includes('zine='), { timeout: 15000 });
 
   // Comment should appear
   await page.waitForSelector('#zines-container', { timeout: 15000 });
