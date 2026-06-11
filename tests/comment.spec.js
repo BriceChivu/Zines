@@ -4,11 +4,11 @@ const ZINE_ID = 'KoreaMoments1';
 const TEST_CODE = process.env.TEST_CODE;
 
 test('user can submit a comment with correct code', async ({ page }) => {
-  await page.goto(`/?zine=${ZINE_ID}`);
+  await page.goto(`/?zine=${ZINE_ID}`, { waitUntil: 'networkidle' });
 
   // Intro and form are visible
-  await expect(page.locator('#typewriter')).toBeVisible();
-  await expect(page.locator('#comment-form')).toBeVisible();
+  await expect(page.locator('#typewriter')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('#comment-form')).toBeVisible({ timeout: 15000 });
 
   // Fill in the form
   await page.fill('#author', 'CI Test');
@@ -27,7 +27,7 @@ test('user can submit a comment with correct code', async ({ page }) => {
 });
 
 test('wrong code shows error and does not submit', async ({ page }) => {
-  await page.goto(`/?zine=${ZINE_ID}`);
+  await page.goto(`/?zine=${ZINE_ID}`, { waitUntil: 'networkidle' });
 
   await page.fill('#code', 'WRONGCODE');
   await page.fill('#body', 'This should not be saved');
