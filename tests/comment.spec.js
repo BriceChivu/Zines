@@ -19,14 +19,6 @@ test('user can submit a comment with correct code', async ({ page }) => {
   // Submit
   await page.click('button[type="submit"]');
 
-// Wait a moment then check for errors
-  await page.waitForTimeout(5000);
-  const errorText = await page.locator('#form-error').textContent();
-  const currentUrl = page.url();
-  console.log('URL after submit:', currentUrl);
-  console.log('Error text:', errorText);
-  await page.screenshot({ path: 'test-results/after-submit.png', fullPage: true });
-
   // Should redirect to homepage
   await page.waitForURL(url => !url.toString().includes('zine='), { timeout: 15000 });
 
