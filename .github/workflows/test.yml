@@ -27,6 +27,13 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: npx playwright test
 
+      - name: Upload debug screenshot
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: debug-screenshot
+          path: test-results/debug.png
+
       - name: Cleanup test comment
         if: always()
         run: |
