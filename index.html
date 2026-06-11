@@ -72,6 +72,12 @@ const el = document.getElementById("typewriter");
     let enDone = [];
     let zhDone = [];
 
+    // Reserve full height by rendering complete text as invisible placeholder
+    const allEN = lines.map(function(l) { return l[0]; }).join("<br>");
+    const allZH = lines.map(function(l) { return l[1]; }).join("<br>");
+    el.innerHTML = "<span style='visibility:hidden'>" + allEN + "<br><br>" + allZH + "</span>";
+    el.style.minHeight = el.offsetHeight + "px";
+
     function render() {
       let enHtml = enDone.join("<br>") + (enDone.length ? "<br>" : "");
       let zhHtml = zhDone.join("<br>") + (zhDone.length ? "<br>" : "");
@@ -81,6 +87,7 @@ const el = document.getElementById("typewriter");
       }
       el.innerHTML = enHtml + '<span>|</span><br><br>' + zhHtml;
     }
+
 
     function typeEN() {
       if (lineIndex >= lines.length) return;
