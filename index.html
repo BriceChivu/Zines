@@ -338,15 +338,15 @@ const el = document.getElementById("typewriter");
     const location = document.getElementById("location").value.trim();
 
     if (!code) {
-      errorEl.textContent = "Please enter the secret code printed at the back of the zine.<br>請輸入印在小誌背面的密碼。";
+      eerrorEl.innerHTML = "Please enter the secret code printed at the back of the zine.<br>請輸入印在小誌背面的密碼。";
       return;
     }
     if (!body) {
-      errorEl.textContent = "Message cannot be empty.<br>留言不能為空。";
+      eerrorEl.innerHTML = "Message cannot be empty.<br>留言不能為空。";
       return;
     }
     if (body.length > MAX_COMMENT_LENGTH) {
-      errorEl.textContent = "Message is too long.<br>留言太長了。";
+      eerrorEl.innerHTML = "Message is too long.<br>留言太長了。";
       return;
     }
 
