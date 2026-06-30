@@ -37,8 +37,8 @@
   RATE LIMITING
   -------------
   - A client-side 60-second cooldown per browser session is
-    enforced. Server-side rate limiting can be added in
-    Supabase via a Postgres function if needed later.
+    enforced. Server-side rate limiting is also enforced in
+    Supabase by the `submit_comment` Postgres function.
 
 =============================================================
 -->
@@ -338,15 +338,19 @@ const el = document.getElementById("typewriter");
     const location = document.getElementById("location").value.trim();
 
     if (!code) {
-      eerrorEl.innerHTML = "Please enter the secret code printed at the back of the zine.<br>請輸入印在小誌背面的密碼。";
+      errorEl.innerHTML = "Please enter the secret code printed at the back of the zine.<br>請輸入印在小誌背面的密碼。";
+      return;
+    }
+    if (!location) {
+      errorEl.innerHTML = "Please enter where you found the zine.<br>請輸入你在哪裡找到這本小誌。";
       return;
     }
     if (!body) {
-      eerrorEl.innerHTML = "Message cannot be empty.<br>留言不能為空。";
+      errorEl.innerHTML = "Message cannot be empty.<br>留言不能為空。";
       return;
     }
     if (body.length > MAX_COMMENT_LENGTH) {
-      eerrorEl.innerHTML = "Message is too long.<br>留言太長了。";
+      errorEl.innerHTML = "Message is too long.<br>留言太長了。";
       return;
     }
 
@@ -376,6 +380,34 @@ const el = document.getElementById("typewriter");
 
       if (result === "invalid_zine") {
         errorEl.textContent = "Unknown zine. Please try again. / 未知的小誌。請再試一次。";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit / 送出";
+        return;
+      }
+
+      if (result === "invalid_location") {
+        errorEl.textContent = "Please enter where you found the zine. / 請輸入你在哪裡找到這本小誌。";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit / 送出";
+        return;
+      }
+
+      if (result === "invalid_body") {
+        errorEl.textContent = "Message must be between 1 and 500 characters. / 留言需為 1 到 500 字。";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit / 送出";
+        return;
+      }
+
+      if (result === "rate_limited") {
+        errorEl.textContent = "Please wait a minute before submitting again. / 請等一分鐘後再送出。";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit / 送出";
+        return;
+      }
+
+      if (result !== "ok") {
+        errorEl.textContent = "Submission error. Please check your message and try again. / 提交錯誤。請檢查留言後再試一次。";
         submitBtn.disabled = false;
         submitBtn.textContent = "Submit / 送出";
         return;
