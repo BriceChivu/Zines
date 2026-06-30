@@ -298,8 +298,8 @@ const el = document.getElementById("typewriter");
           html += "from / 來自: " + authorDisplay + igDisplay + "<br>";
           if (c.location) html += "location / 地點: " + escapeHtml(c.location) + "<br>";
           html += formatDate(c.created_at) + "<br>";
-          html += escapeHtml(c.body);          
-          // html += "</p><hr>";
+          html += escapeHtml(c.body);
+          html += "</p>";
         });
       }
 

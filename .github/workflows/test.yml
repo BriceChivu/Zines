@@ -20,8 +20,14 @@ jobs:
           npm install @playwright/test
           npx playwright install chromium --with-deps
 
+      - name: Start checked-out site
+        run: |
+          python3 -m http.server 8080 > server.log 2>&1 &
+          curl --retry 10 --retry-delay 1 --retry-connrefused http://127.0.0.1:8080/
+
       - name: Run tests
         env:
+          BASE_URL: http://127.0.0.1:8080
           TEST_CODE: ${{ secrets.TEST_CODE }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
@@ -38,7 +44,7 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          curl -s -X DELETE "${{ secrets.SUPABASE_URL }}/rest/v1/comments?author=eq.CI%20Test" \
+          curl -s -X DELETE "${{ secrets.SUPABASE_URL }}/rest/v1/comments?author=eq.CI%20Test&body=eq.Automated%20test%20comment%20%E2%80%94%20will%20be%20deleted" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
             -H "Prefer: return=minimal"

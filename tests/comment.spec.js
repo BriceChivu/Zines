@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const ZINE_ID = 'KoreaMoments1';
 const TEST_CODE = process.env.TEST_CODE;
-const BASE_URL = 'https://bricechivu.github.io/Zines';
+const BASE_URL = process.env.BASE_URL || 'https://bricechivu.github.io/Zines';
 const RATE_LIMIT_RETRY_MS = 61000;
 const SUBMIT_OUTCOME_TIMEOUT_MS = 15000;
 
