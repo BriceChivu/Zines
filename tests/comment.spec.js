@@ -3,6 +3,22 @@ import { test, expect } from '@playwright/test';
 const ZINE_ID = 'KoreaMoments1';
 const TEST_CODE = process.env.TEST_CODE;
 const BASE_URL = 'https://bricechivu.github.io/Zines';
+const RATE_LIMIT_RETRY_MS = 61000;
+
+test.describe.configure({ mode: 'serial' });
+
+async function submitAndWaitThroughRateLimit(page) {
+  await page.click('button[type="submit"]');
+
+  const rateLimitMessage = page.locator('#form-error');
+  try {
+    await expect(rateLimitMessage).toContainText('Please wait a minute', { timeout: 3000 });
+    await page.waitForTimeout(RATE_LIMIT_RETRY_MS);
+    await page.click('button[type="submit"]');
+  } catch (err) {
+    // No rate-limit message appeared, so the first submit is still in flight or succeeded.
+  }
+}
 
 test('user can submit a comment with correct code', async ({ page }) => {
   await page.goto(`${BASE_URL}/?zine=${ZINE_ID}`, { waitUntil: 'networkidle' });
@@ -18,7 +34,7 @@ test('user can submit a comment with correct code', async ({ page }) => {
   await page.fill('#instagram', '@ci_test');
 
   // Submit
-  await page.click('button[type="submit"]');
+  await submitAndWaitThroughRateLimit(page);
 
   // Should redirect to homepage
   await page.waitForURL(url => !url.toString().includes('zine='), { timeout: 15000 });
@@ -36,7 +52,7 @@ test('wrong code shows error and does not submit', async ({ page }) => {
   await page.fill('#location', 'GitHub Actions');
   await page.fill('#code', 'WRONGCODE');
   await page.fill('#body', 'This should not be saved');
-  await page.click('button[type="submit"]');
+  await submitAndWaitThroughRateLimit(page);
 
   // Should stay on same page and show error
   await expect(page.locator('#form-error')).toContainText('Wrong code', { timeout: 10000 });
