@@ -188,7 +188,7 @@ const el = document.getElementById("typewriter");
   // =============================================================
 
   async function fetchZines() {
-    return supabaseFetch("zines?select=*&order=created_at.asc");
+    return supabaseFetch("zines?select=id,title,created_at&order=created_at.asc");
   }
 
   async function fetchComments() {
