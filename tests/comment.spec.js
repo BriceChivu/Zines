@@ -4,19 +4,35 @@ const ZINE_ID = 'KoreaMoments1';
 const TEST_CODE = process.env.TEST_CODE;
 const BASE_URL = 'https://bricechivu.github.io/Zines';
 const RATE_LIMIT_RETRY_MS = 61000;
+const SUBMIT_OUTCOME_TIMEOUT_MS = 15000;
 
 test.describe.configure({ mode: 'serial' });
+test.setTimeout(90000);
 
-async function submitAndWaitThroughRateLimit(page) {
+async function submitExpectingRedirect(page) {
   await page.click('button[type="submit"]');
 
-  const rateLimitMessage = page.locator('#form-error');
   try {
-    await expect(rateLimitMessage).toContainText('Please wait a minute', { timeout: 3000 });
+    await page.waitForURL(url => !url.toString().includes('zine='), { timeout: SUBMIT_OUTCOME_TIMEOUT_MS });
+  } catch (err) {
+    await expect(page.locator('#form-error')).toContainText('Please wait a minute', { timeout: 1000 });
     await page.waitForTimeout(RATE_LIMIT_RETRY_MS);
     await page.click('button[type="submit"]');
-  } catch (err) {
-    // No rate-limit message appeared, so the first submit is still in flight or succeeded.
+    await page.waitForURL(url => !url.toString().includes('zine='), { timeout: SUBMIT_OUTCOME_TIMEOUT_MS });
+  }
+}
+
+async function submitExpectingWrongCode(page) {
+  await page.click('button[type="submit"]');
+
+  const errorEl = page.locator('#form-error');
+  await expect(errorEl).toContainText(/Wrong code|Please wait a minute/, {
+    timeout: SUBMIT_OUTCOME_TIMEOUT_MS
+  });
+
+  if (((await errorEl.textContent()) || '').includes('Please wait a minute')) {
+    await page.waitForTimeout(RATE_LIMIT_RETRY_MS);
+    await page.click('button[type="submit"]');
   }
 }
 
@@ -34,10 +50,7 @@ test('user can submit a comment with correct code', async ({ page }) => {
   await page.fill('#instagram', '@ci_test');
 
   // Submit
-  await submitAndWaitThroughRateLimit(page);
-
-  // Should redirect to homepage
-  await page.waitForURL(url => !url.toString().includes('zine='), { timeout: 15000 });
+  await submitExpectingRedirect(page);
 
   // Comment should appear
   await page.waitForSelector('#zines-container', { timeout: 15000 });
@@ -52,7 +65,7 @@ test('wrong code shows error and does not submit', async ({ page }) => {
   await page.fill('#location', 'GitHub Actions');
   await page.fill('#code', 'WRONGCODE');
   await page.fill('#body', 'This should not be saved');
-  await submitAndWaitThroughRateLimit(page);
+  await submitExpectingWrongCode(page);
 
   // Should stay on same page and show error
   await expect(page.locator('#form-error')).toContainText('Wrong code', { timeout: 10000 });
