@@ -37,8 +37,8 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: debug-screenshot
-          path: test-results/after-submit.png
+          name: playwright-test-results
+          path: test-results/
 
       - name: Cleanup test comment
         if: always()
